@@ -38,7 +38,14 @@ public class App {
 		LogManager.getLogManager().reset();
 		final Logger logger = Logger.getLogger(GlobalScreen.class.getPackage().getName());
 		logger.setLevel(Level.OFF);
-		app.run();
+		app.run(args);
+
+		for (String arg : args)
+			// user wants to start in disabled mode
+			if (arg.toLowerCase().equals("disabled")) {
+				System.out.println("going into disabled mode");
+				setMode(AppMode.DISABLED);
+			}
 	}
 
 	/**
@@ -57,7 +64,7 @@ public class App {
 	/**
 	 * Starts hooks, shows tray icon
 	 */
-	public void run() {
+	public void run(String[] args) {
 		System.out.print("Starting ... ");
 
 		InputActionListener actionListener = new InputActionListener();
@@ -73,12 +80,19 @@ public class App {
 			errorHandler(e);
 		}
 
-		initTrayIcon();
+		boolean showBalloonTipMessage = true;
+		for (String arg : args)
+			// user wants to start in disabled mode
+			if (arg.toLowerCase().equals("silent")) {
+				System.out.print("going into silent mode ... ");
+				showBalloonTipMessage = false;
+			}
+		initTrayIcon(showBalloonTipMessage);
 
 		GlobalScreen.addNativeKeyListener(actionListener);
 		GlobalScreen.addNativeMouseListener(actionListener);
 		GlobalScreen.addNativeMouseMotionListener(actionListener);
-		
+
 		System.out.println("ready!");
 	}
 
@@ -91,7 +105,9 @@ public class App {
 
 	/**
 	 * Changes mode of the application
-	 * @param newMode new mode of application
+	 * 
+	 * @param newMode
+	 *            new mode of application
 	 */
 	public static void setMode(AppMode newMode) {
 		mode = newMode;
@@ -100,8 +116,11 @@ public class App {
 
 	/**
 	 * Initializes and shows system tray icon
+	 * 
+	 * @param showBalloonTipMessage
+	 *            if set to true, shows balloon message upon start
 	 */
-	private void initTrayIcon() {
+	private void initTrayIcon(boolean showBalloonTipMessage) {
 		if (!SystemTray.isSupported())
 			errorHandler(new Exception("System tray is not supported"));
 
@@ -132,7 +151,8 @@ public class App {
 			errorHandler(e1);
 		}
 
-		trayIcon.displayMessage("Touchapd disabler", "your mouse will be taken care of while you type now",
-				TrayIcon.MessageType.INFO);
+		if (showBalloonTipMessage)
+			trayIcon.displayMessage("Touchapd disabler", "your mouse will be taken care of while you type now",
+					TrayIcon.MessageType.INFO);
 	}
 }
