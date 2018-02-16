@@ -24,9 +24,9 @@ import org.jnativehook.keyboard.NativeKeyEvent;
 
 public class App {
 	// User settings
-	public final static long hiddenMouseMillis = 300;
+	public final static long hiddenMouseMillis = 300; // how long does the mouse stand hidden
 	public final static int keyboardShortcutModeSwitch[] = { NativeKeyEvent.VC_CONTROL, NativeKeyEvent.VC_ALT,
-			NativeKeyEvent.VC_P };
+			NativeKeyEvent.VC_P }; // when all keys are pressed, mode is switched between ENABLED and DISABLED
 
 	// Other global variables
 	public final static App app = new App();
