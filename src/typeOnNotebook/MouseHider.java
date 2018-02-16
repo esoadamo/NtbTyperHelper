@@ -31,12 +31,15 @@ public class MouseHider {
 		// If we have a timer running, just reset it
 		if (t != null)
 			t.cancel();
-		// No timer running -> hide the mouse in the middle of the window bar of this window
+		// No timer running -> hide the mouse in the middle of the window bar of this
+		// window
 		else {
 			savedMousePos = MouseInfo.getPointerInfo().getLocation();
 			final Rectangle currentWindowRect = WindowManipulator.getCurrentWindowRect();
 			hiddenMousePos = new Point(currentWindowRect.x + (currentWindowRect.width / 2), currentWindowRect.y + 10);
 			moveToHiddenPos();
+			if (!App.isDisabled())
+				App.setMode(AppMode.ACTIVE);
 		}
 		t = new Timer();
 
@@ -48,6 +51,8 @@ public class MouseHider {
 				t = null;
 				hidden = false;
 				r.mouseMove(savedMousePos.x, savedMousePos.y);
+				if (!App.isDisabled())
+					App.setMode(AppMode.ENABLED);
 			}
 
 		}, App.hiddenMouseMillis);

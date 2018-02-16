@@ -9,6 +9,8 @@ import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -18,11 +20,19 @@ import javax.swing.JOptionPane;
 
 import org.jnativehook.GlobalScreen;
 import org.jnativehook.NativeHookException;
+import org.jnativehook.keyboard.NativeKeyEvent;
 
 public class App {
-	final static App app = new App();
-	final static long hiddenMouseMillis = 1500;
-	static TrayIcon trayIcon;
+	// User settings
+	public final static long hiddenMouseMillis = 300;
+	public final static int keyboardShortcutModeSwitch[] = { NativeKeyEvent.VC_CONTROL, NativeKeyEvent.VC_ALT,
+			NativeKeyEvent.VC_P };
+
+	// Other global variables
+	public final static App app = new App();
+	private static TrayIcon trayIcon;
+	private static AppMode mode = AppMode.ENABLED;
+	private static Map<AppMode, Image> images = new HashMap<AppMode, Image>();
 
 	public static void main(String[] args) {
 		LogManager.getLogManager().reset();
@@ -33,10 +43,13 @@ public class App {
 
 	/**
 	 * Shows exception as GUI message
-	 * @param e exception that is printed to the console
+	 * 
+	 * @param e
+	 *            exception that is printed to the console
 	 */
 	public void errorHandler(Exception e) {
-		JOptionPane.showMessageDialog(null, "... there was an error :'(\n" + e.getMessage(), "Sorry to fail you, but...", JOptionPane.ERROR_MESSAGE);
+		JOptionPane.showMessageDialog(null, "... there was an error :'(\n" + e.getMessage(),
+				"Sorry to fail you, but...", JOptionPane.ERROR_MESSAGE);
 		System.err.println(e.getMessage());
 		System.exit(1);
 	}
@@ -45,56 +58,81 @@ public class App {
 	 * Starts hooks, shows tray icon
 	 */
 	public void run() {
-		System.out.println("Starting...");
+		System.out.print("Starting ... ");
 
 		InputActionListener actionListener = new InputActionListener();
+		try {
+			actionListener.init();
+		} catch (Exception e1) {
+			errorHandler(e1);
+		}
 
 		try {
 			GlobalScreen.registerNativeHook();
 		} catch (NativeHookException e) {
 			errorHandler(e);
 		}
-		
+
 		initTrayIcon();
 
 		GlobalScreen.addNativeKeyListener(actionListener);
 		GlobalScreen.addNativeMouseListener(actionListener);
 		GlobalScreen.addNativeMouseMotionListener(actionListener);
+		
+		System.out.println("ready!");
 	}
-	
+
+	/*
+	 * Checks if the application is in disabled mode
+	 */
+	public static boolean isDisabled() {
+		return mode == AppMode.DISABLED;
+	}
+
+	/**
+	 * Changes mode of the application
+	 * @param newMode new mode of application
+	 */
+	public static void setMode(AppMode newMode) {
+		mode = newMode;
+		trayIcon.setImage(images.get(mode));
+	}
+
 	/**
 	 * Initializes and shows system tray icon
 	 */
 	private void initTrayIcon() {
-		if(!SystemTray.isSupported())
+		if (!SystemTray.isSupported())
 			errorHandler(new Exception("System tray is not supported"));
-	    
-	    final SystemTray systemTray = SystemTray.getSystemTray();
-	    final PopupMenu trayPopupMenu = new PopupMenu();
-	    Image trayIconImage = null;
+
+		final SystemTray systemTray = SystemTray.getSystemTray();
+		final PopupMenu trayPopupMenu = new PopupMenu();
 		try {
-			trayIconImage = ImageIO.read(getClass().getResourceAsStream("/pencil.png"));
+			images.put(AppMode.ENABLED, ImageIO.read(getClass().getResourceAsStream("/pencil.png")));
+			images.put(AppMode.DISABLED, ImageIO.read(getClass().getResourceAsStream("/pencil-red.png")));
+			images.put(AppMode.ACTIVE, ImageIO.read(getClass().getResourceAsStream("/pencil-green.png")));
 		} catch (IOException e2) {
 			errorHandler(e2);
 		}
-	    
-	    MenuItem close = new MenuItem("Exit");
-	    close.addActionListener(new ActionListener() {
-	        public void actionPerformed(ActionEvent e) {
-	            System.exit(0);             
-	        }
-	    });
-	    trayPopupMenu.add(close);
-	    
-	    trayIcon = new TrayIcon(trayIconImage, "Hide mouse while typing", trayPopupMenu);
-	    trayIcon.setImageAutoSize(true);
-	    
-	    try {
+
+		MenuItem close = new MenuItem("Exit");
+		close.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+		trayPopupMenu.add(close);
+
+		trayIcon = new TrayIcon(images.get(mode), "Hide mouse while typing", trayPopupMenu);
+		trayIcon.setImageAutoSize(true);
+
+		try {
 			systemTray.add(trayIcon);
 		} catch (AWTException e1) {
 			errorHandler(e1);
 		}
-	    
-	    trayIcon.displayMessage("Touchapd disabler", "your mouse will be taken care of while you type now", TrayIcon.MessageType.INFO);
+
+		trayIcon.displayMessage("Touchapd disabler", "your mouse will be taken care of while you type now",
+				TrayIcon.MessageType.INFO);
 	}
 }

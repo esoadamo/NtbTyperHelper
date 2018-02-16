@@ -1,3 +1,5 @@
+# **NtbTyperHelper**
+
 ## What is this?
 
 This app hides your mouse on your notebook while you type so you will not accidentally touch the touchpad and click somewhere. Yeah.. that's pretty what this does.
