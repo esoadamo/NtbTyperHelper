@@ -29,6 +29,7 @@ public class App {
 			NativeKeyEvent.VC_P }; // when all keys are pressed, mode is switched between ENABLED and DISABLED
 
 	// Other global variables
+	public static OS os = null;
 	public final static App app = new App();
 	private static TrayIcon trayIcon;
 	private static AppMode mode = AppMode.ENABLED;
@@ -66,6 +67,19 @@ public class App {
 	 */
 	public void run(String[] args) {
 		System.out.print("Starting ... ");
+
+		final String osString = System.getProperty("os.name").toLowerCase();
+		if (osString.startsWith("win"))
+			os = OS.WINDOWS;
+		else if (osString.startsWith("lin"))
+			os = OS.LINUX;
+		else
+			os = OS.OTHER;
+
+		if (os == OS.OTHER) {
+			System.out.println("not supported");
+			errorHandler(new Exception("Unsupported operating system"));
+		}
 
 		InputActionListener actionListener = new InputActionListener();
 		try {
@@ -152,7 +166,7 @@ public class App {
 		}
 
 		if (showBalloonTipMessage)
-			trayIcon.displayMessage("Touchapd disabler", "your mouse will be taken care of while you type now",
+			trayIcon.displayMessage("Touchpad disabler", "your mouse will be taken care of while you type now",
 					TrayIcon.MessageType.INFO);
 	}
 }

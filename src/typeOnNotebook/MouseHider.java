@@ -36,7 +36,10 @@ public class MouseHider {
 		else {
 			savedMousePos = MouseInfo.getPointerInfo().getLocation();
 			final Rectangle currentWindowRect = WindowManipulator.getCurrentWindowRect();
-			hiddenMousePos = new Point(currentWindowRect.x + (currentWindowRect.width / 2), currentWindowRect.y + 10);
+			hiddenMousePos = new Point(currentWindowRect.x + (currentWindowRect.width / 2),
+					currentWindowRect.y + (10 * (App.os == OS.WINDOWS ? 1 : -1))); // on Linux the position is without
+																					// the title bar, so we have to move
+																					// 10px in up, not down
 			moveToHiddenPos();
 			if (!App.isDisabled())
 				App.setMode(AppMode.ACTIVE);
