@@ -8,6 +8,7 @@ import org.jnativehook.mouse.NativeMouseInputListener;
 public class InputActionListener implements NativeKeyListener, NativeMouseInputListener {
 	private boolean pressedShortcutKeys[] = null;
 	private boolean initCompted = false;
+	private int pressedKeys = 0;
 
 	/**
 	 * Initializes shortcut pressing
@@ -28,6 +29,11 @@ public class InputActionListener implements NativeKeyListener, NativeMouseInputL
 	 */
 	@Override
 	public void nativeKeyPressed(NativeKeyEvent e) {
+		pressedKeys += 1;
+		
+		if (!App.isDisabled())
+			MouseHider.hide();
+		
 		final int pressedCode = e.getKeyCode();
 		for (int i = 0; i < App.keyboardShortcutModeSwitch.length; i++)
 			if (App.keyboardShortcutModeSwitch[i] == pressedCode) {
@@ -53,14 +59,15 @@ public class InputActionListener implements NativeKeyListener, NativeMouseInputL
 	 */
 	@Override
 	public void nativeKeyReleased(NativeKeyEvent e) {
+		pressedKeys -= 1;
 		final int pressedCode = e.getKeyCode();
 		for (int i = 0; i < App.keyboardShortcutModeSwitch.length; i++)
 			if (App.keyboardShortcutModeSwitch[i] == pressedCode) {
 				pressedShortcutKeys[i] = false;
 				break;
 			}
-		if (!App.isDisabled())
-			MouseHider.hide();
+		if (pressedKeys == 0)
+			MouseHider.show();
 	}
 
 	/**
