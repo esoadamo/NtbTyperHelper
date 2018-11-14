@@ -48,7 +48,7 @@ public class MouseHider {
 			frame.setFocusable(false);
 			frame.setFocusableWindowState(false);
 			frame.setCursor(blankCursor);
-			frame.setOpacity((float) 0.00001);
+			frame.setOpacity((float) 0.1);
 		}
 
 		hidden = true;
