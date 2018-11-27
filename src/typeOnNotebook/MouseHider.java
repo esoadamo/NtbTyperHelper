@@ -4,7 +4,6 @@ import java.awt.AWTException;
 import java.awt.Cursor;
 import java.awt.MouseInfo;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -18,7 +17,6 @@ public class MouseHider {
 	private static Timer timerUnhide = null;
 	private static Timer timerMouseKeeper = null;
 	private static Point savedMousePos = null;
-	private static Point hiddenMousePos = null;
 	private static boolean hidden = false;
 	private static JFrame frame = null;
 
@@ -48,7 +46,7 @@ public class MouseHider {
 			frame.setFocusable(false);
 			frame.setFocusableWindowState(false);
 			frame.setCursor(blankCursor);
-			frame.setOpacity((float) 0.1);
+			frame.setOpacity((float) 0.01);
 		}
 
 		hidden = true;
@@ -63,21 +61,14 @@ public class MouseHider {
 			
 			// Save the position of the mouse before hiding
 			savedMousePos = MouseInfo.getPointerInfo().getLocation();
-			final Rectangle currentWindowRect = WindowManipulator.getCurrentWindowRect();
-			
-			// Compute where to put hidden the mouse
-			hiddenMousePos = new Point(currentWindowRect.x + (currentWindowRect.width / 2),
-					currentWindowRect.y + (10 * (App.os == OS.WINDOWS ? 1 : -1))); // on Linux the position is without
-																					// the title bar, so we have to move
-																					// 10px in up, not down
-			
+		
 			// Paint a frame around the mouse so that clicking will not make any intrusive event
-			frame.setLocation((int)(hiddenMousePos.getX() - 200), (int)(hiddenMousePos.getY() - 200));
+			frame.setLocation((int)(savedMousePos.getX() - 200), (int)(savedMousePos.getY() - 200));
 			frame.setVisible(true);
 			if (!App.isDisabled())
 				App.setMode(AppMode.ACTIVE);
 			
-			// Move the mouse to the hidden position every 10ms so it keeps being hidden until .show() is called
+			// Move the mouse to the saved position every 10ms so it keeps being hidden until .show() is called
 			moveToHiddenPos();
 			timerMouseKeeper.schedule(new TimerTask() {
 
@@ -132,9 +123,9 @@ public class MouseHider {
 	 * Moves the mouse back to it's hidden position
 	 */
 	public static void moveToHiddenPos() {
-		if ((!hidden) || (r == null) || (hiddenMousePos == null))
+		if ((!hidden) || (r == null) || (savedMousePos == null))
 			return;
-		r.mouseMove(hiddenMousePos.x, hiddenMousePos.y);
+		r.mouseMove(savedMousePos.x, savedMousePos.y);
 	}
 
 	/**
